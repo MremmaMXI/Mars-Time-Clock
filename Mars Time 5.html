@@ -4,8 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Dashboard Tierra &amp; Marte</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -39,9 +37,33 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 }
 @keyframes pulse-border{0%,100%{box-shadow:0 0 18px rgba(0,229,255,.25)}50%{box-shadow:0 0 32px rgba(0,229,255,.5)}}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.theme-btn{
+  padding:.45rem .9rem;border-radius:50px;border:1px solid var(--border);
+  background:rgba(255,255,255,.04);color:var(--sub);font-size:.76rem;font-weight:600;
+  cursor:pointer;transition:all .2s
+}
+.theme-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+
+/* ── Mode bar ── */
+.mode-bar{display:flex;align-items:center;gap:.55rem;justify-content:center;flex-wrap:wrap}
+.mode-btn{
+  padding:.5rem 1rem;border-radius:50px;border:2px solid var(--border);
+  background:rgba(255,255,255,.04);color:var(--sub);font-size:.8rem;font-weight:700;
+  cursor:pointer;letter-spacing:.02em;transition:all .2s
+}
+.mode-btn:hover:not(:disabled){border-color:rgba(255,255,255,.2);color:var(--text)}
+.mode-btn:disabled{opacity:.9;cursor:default}
+.mode-btn.active-e{border-color:var(--ea);color:var(--ea);box-shadow:0 0 16px rgba(56,139,255,.25)}
+.mode-btn.active-d{border-color:var(--da);color:var(--da);box-shadow:0 0 16px rgba(192,132,252,.28)}
+.mode-btn.active-m{border-color:var(--ma);color:var(--ma);box-shadow:0 0 16px rgba(255,110,50,.28)}
 
 /* ── Grid ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.4rem;width:100%;max-width:1300px}
+.grid.single-panel{
+  grid-template-columns:minmax(300px,680px);
+  max-width:760px;
+  justify-content:center
+}
 
 /* ── Panel ── */
 .panel{
@@ -84,15 +106,6 @@ canvas.clock-face{display:block}
 .earth .clock-digital{color:#7bb8ff}
 .mars .clock-digital{color:#ffaa70}
 .darian .clock-digital{color:#c084fc}
-.earth-clock-row{
-  display:flex;align-items:center;justify-content:center;gap:1rem;width:100%;flex-wrap:wrap;z-index:1
-}
-#earth-globe{
-  width:190px;height:190px;border-radius:50%;overflow:hidden;position:relative
-}
-#earth-globe canvas{
-  display:block;width:190px !important;height:190px !important
-}
 
 /* ── Mars seconds reference ── */
 .mars-sec-ref{
@@ -234,6 +247,28 @@ canvas.clock-face{display:block}
 .dp-cell.dp-cur.dp-d{background:rgba(192,132,252,.22);color:var(--da)}
 
 footer{font-size:.68rem;color:var(--sub);text-align:center;opacity:.55;max-width:900px;line-height:1.6}
+
+body.light{
+  --bg:#f0f2ff; --panel:#ffffff; --border:rgba(0,0,0,.1);
+  --text:#1a1a2e; --sub:#5a6080;
+}
+body.light .panel{box-shadow:0 2px 16px rgba(0,0,0,0.08)}
+body.light .dp-popover{
+  background:#ffffff;color:var(--text);
+  border-color:rgba(0,0,0,.15);box-shadow:0 8px 24px rgba(0,0,0,.16)
+}
+body.light .nbtn,
+body.light .sync-btn,
+body.light .now-btn,
+body.light .theme-btn,
+body.light .mode-btn,
+body.light .dp-ybtn{
+  border-color:rgba(0,0,0,.16);background:rgba(30,30,50,.03)
+}
+body.light .mini-cal td:hover:not(.empty){background:rgba(0,0,0,.06)}
+body.light .cal-nav-title:hover{background:rgba(0,0,0,.06)}
+body.light .dp-year-lbl:hover,
+body.light .dp-cell:hover{background:rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
@@ -247,6 +282,12 @@ footer{font-size:.68rem;color:var(--sub);text-align:center;opacity:.55;max-width
   <button class="sync-btn" id="sync-toggle" onclick="toggleSync()">
     <span class="sync-dot"></span><span id="sync-label">🔗 Sincronizar calendarios</span>
   </button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ Modo claro</button>
+</div>
+<div class="mode-bar">
+  <button class="mode-btn mode-earth active-e" id="btn-mode-earth" onclick="setMarsMode('none')">🌍 Terrestre</button>
+  <button class="mode-btn mode-darian" id="btn-mode-darian" onclick="setMarsMode('darian')">🟣 Cambiar a Dariano</button>
+  <button class="mode-btn mode-silin" id="btn-mode-silin" onclick="setMarsMode('silin')">🔴 Cambiar a Silin</button>
 </div>
 
 <div class="grid">
@@ -257,12 +298,9 @@ footer{font-size:.68rem;color:var(--sub);text-align:center;opacity:.55;max-width
       <div class="badge"><span class="dot"></span>Tierra — UTC</div>
       <button class="now-btn" id="earth-now-btn" onclick="goEarthNow()">● Hoy</button>
     </div>
-    <div class="earth-clock-row">
-      <div class="clock-wrap">
-        <canvas class="clock-face" id="canvas-earth" width="190" height="190"></canvas>
-        <div class="clock-digital" id="digital-earth">00:00:00</div>
-      </div>
-      <div id="earth-globe"></div>
+    <div class="clock-wrap">
+      <canvas class="clock-face" id="canvas-earth" width="190" height="190"></canvas>
+      <div class="clock-digital" id="digital-earth">00:00:00</div>
     </div>
     <div class="date-block">
       <div class="day-num" id="earth-day">1</div>
@@ -293,7 +331,7 @@ footer{font-size:.68rem;color:var(--sub);text-align:center;opacity:.55;max-width
   </div>
 
   <!-- ═══════ MARTE — SILIN ═══════ -->
-  <div class="panel mars" id="panel-mars">
+  <div class="panel mars" id="panel-mars" style="display:none">
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Marte — Silin</div>
       <button class="now-btn" id="mars-now-btn" onclick="goMarsNow()">● Ahora</button>
@@ -342,7 +380,7 @@ footer{font-size:.68rem;color:var(--sub);text-align:center;opacity:.55;max-width
   </div>
 
   <!-- ═══════ MARTE — DARIANO ═══════ -->
-  <div class="panel darian" id="panel-darian">
+  <div class="panel darian" id="panel-darian" style="display:none">
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Marte — Dariano</div>
       <button class="now-btn" id="darian-now-btn" onclick="goDarianNow()">● Ahora</button>
@@ -466,7 +504,8 @@ let syncMode = false;
 let eNavYear, eNavMonth, eSelDay = null, eNavLive = true;
 let mNavYear, mNavMonth, mSelSol = null, mNavLive = true;
 let dNavYear, dNavMonth, dSelSol = null, dNavLive = true;
-let earth3D = null;
+let marsMode = 'none';
+let darkMode = true;
 
 /* ══════════════════════════════════════════════
    UTILIDADES GENERALES
@@ -650,84 +689,6 @@ function drawClock(id, h, m, s, p){
   hand(s/60*Math.PI*2-Math.PI/2, 75, 1.5, p.sH);
   ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fillStyle=p.ctr; ctx.fill();
   ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-}
-
-/* ══════════════════════════════════════════════
-   EARTH 3D GLOBE
-══════════════════════════════════════════════ */
-function initEarthGlobe(){
-  const host = document.getElementById('earth-globe');
-  if(!host) return;
-  if(!(window.THREE && THREE.OrbitControls)) return;
-  try{
-    const scene = new THREE.Scene();
-    scene.background = null;
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.z = 2.5;
-
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-    renderer.setSize(190, 190, false);
-    renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.background = 'transparent';
-    host.appendChild(renderer.domElement);
-
-    const ambient = new THREE.AmbientLight(0x111111);
-    scene.add(ambient);
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    scene.add(sunLight);
-
-    const geo = new THREE.SphereGeometry(1, 48, 48);
-    const mat = new THREE.MeshPhongMaterial({ color:0x3d7fbf });
-    const earth = new THREE.Mesh(geo, mat);
-    earth.rotation.z = -23.44 * Math.PI / 180;
-    scene.add(earth);
-
-    const texLoader = new THREE.TextureLoader();
-    texLoader.load(
-      'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
-      (tx) => { mat.map = tx; mat.needsUpdate = true; },
-      undefined,
-      () => {}
-    );
-
-    const axisGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, -1.2, 0),
-      new THREE.Vector3(0,  1.2, 0)
-    ]);
-    const axisMat = new THREE.LineBasicMaterial({ color:0xffffff, transparent:true, opacity:0.6 });
-    earth.add(new THREE.Line(axisGeo, axisMat));
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
-    controls.minDistance = 1.5;
-    controls.maxDistance = 5;
-
-    earth3D = { scene, camera, renderer, controls, earth, sunLight };
-  }catch(_e){
-    earth3D = null;
-  }
-}
-
-function utcDayOfYear(now){
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
-  const d = now.getUTCDate();
-  return Math.floor((Date.UTC(y, m, d) - Date.UTC(y, 0, 0)) / 86400000);
-}
-
-function updateEarthGlobe(now){
-  if(!earth3D) return;
-  const { earth, sunLight, controls, renderer, scene, camera } = earth3D;
-  const hoursUTC = now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600;
-  const rotGrados = (hoursUTC - 12) * 15 - 90;
-  earth.rotation.y = rotGrados * Math.PI / 180;
-
-  const dayOfYear = utcDayOfYear(now);
-  const decl = 23.44 * Math.sin((360/365) * (dayOfYear - 81) * Math.PI/180);
-  sunLight.position.set(0, Math.sin(decl*Math.PI/180), Math.cos(decl*Math.PI/180)).normalize();
-
-  controls.update();
-  renderer.render(scene, camera);
 }
 
 /* ══════════════════════════════════════════════
@@ -976,6 +937,40 @@ function toggleSync(){
   });
 }
 
+function updateGridLayout(){
+  const visiblePanels = ['panel-earth','panel-mars','panel-darian']
+    .map(id => document.getElementById(id))
+    .filter(el => el && el.style.display !== 'none').length;
+  document.querySelector('.grid').classList.toggle('single-panel', visiblePanels === 1);
+}
+
+function setMarsMode(mode){
+  if(!['none','silin','darian'].includes(mode)) return;
+  marsMode = mode;
+  const showSilin = mode === 'silin';
+  const showDarian = mode === 'darian';
+  document.getElementById('panel-mars').style.display = showSilin ? '' : 'none';
+  document.getElementById('panel-darian').style.display = showDarian ? '' : 'none';
+
+  const btnEarth = document.getElementById('btn-mode-earth');
+  const btnSilin = document.getElementById('btn-mode-silin');
+  const btnDarian = document.getElementById('btn-mode-darian');
+  btnEarth.disabled = (mode === 'none');
+  btnSilin.disabled = showSilin;
+  btnDarian.disabled = showDarian;
+  btnEarth.classList.toggle('active-e', mode === 'none');
+  btnSilin.classList.toggle('active-m', showSilin);
+  btnDarian.classList.toggle('active-d', showDarian);
+  updateGridLayout();
+}
+
+function toggleTheme(){
+  darkMode = !darkMode;
+  document.body.classList.toggle('light', !darkMode);
+  const themeBtn = document.getElementById('theme-btn');
+  themeBtn.textContent = darkMode ? '☀️ Modo claro' : '🌙 Modo oscuro';
+}
+
 /* ══════════════════════════════════════════════
    RENDER EARTH
 ══════════════════════════════════════════════ */
@@ -1033,23 +1028,23 @@ function tick(){
   const eH=now.getUTCHours(), eMi=now.getUTCMinutes(), eSe=now.getUTCSeconds();
   document.getElementById('digital-earth').textContent = `${pad(eH)}:${pad(eMi)}:${pad(eSe)}`;
   drawClock('canvas-earth', eH, eMi, eSe, EP);
-  updateEarthGlobe(now);
   if(eNavLive){ eNavYear=now.getUTCFullYear(); eNavMonth=now.getUTCMonth()+1; }
   renderEarth(now);
 
-  // Mars clocks — Silin + Darian share same MTC
+  // Mars clocks -- only active panel
   const msd=getMSD(now), mtcH=getMTC(msd);
   const {h,m,s}=mtcToHMS(mtcH);
-  document.getElementById('digital-mars').textContent   = `${pad(h)}:${pad(m)}:${pad(s)}`;
-  document.getElementById('digital-darian').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-  drawClock('canvas-mars', h, m, s, MP);
-  drawClock('canvas-darian', h, m, s, DP2);
-
-  if(mNavLive){ const sil=silinFromTotalSols(solsFromEpoch(now)); mNavYear=sil.year; mNavMonth=sil.month; }
-  renderMars(now);
-
-  if(dNavLive){ const dar=darFromTotalSols(solsFromEpoch(now)); dNavYear=dar.year; dNavMonth=dar.month; }
-  renderDar(now);
+  if(marsMode === 'silin'){
+    document.getElementById('digital-mars').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    drawClock('canvas-mars', h, m, s, MP);
+    if(mNavLive){ const sil=silinFromTotalSols(solsFromEpoch(now)); mNavYear=sil.year; mNavMonth=sil.month; }
+    renderMars(now);
+  } else if(marsMode === 'darian'){
+    document.getElementById('digital-darian').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    drawClock('canvas-darian', h, m, s, DP2);
+    if(dNavLive){ const dar=darFromTotalSols(solsFromEpoch(now)); dNavYear=dar.year; dNavMonth=dar.month; }
+    renderDar(now);
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -1189,13 +1184,14 @@ document.addEventListener('click', function(e){
    INIT
 ══════════════════════════════════════════════ */
 (function init(){
-  initEarthGlobe();
   const now = new Date();
   eNavYear = now.getUTCFullYear(); eNavMonth = now.getUTCMonth()+1;
   const sil = silinFromTotalSols(solsFromEpoch(now));
   mNavYear = sil.year; mNavMonth = sil.month;
   const dar = darFromTotalSols(solsFromEpoch(now));
   dNavYear = dar.year; dNavMonth = dar.month;
+  setMarsMode('none');
+  updateGridLayout();
   tick();
   setInterval(tick, 1000);
 })();
