@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard Tierra &amp; Marte</title>
+<title>Calendario Terrestre - Marciano</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#09090f;--panel:#12121e;--border:rgba(255,255,255,.07);
   --text:#e8eaf6;--sub:#9099b5;--r:18px;
-  --ea:#388bff;--ma:#ff6e32;--da:#c084fc;
-  --sel-e:#00e5ff;--sel-m:#ffd700;--sel-d:#f0abfc;
-  --glow-e:rgba(56,139,255,.3);--glow-m:rgba(255,110,50,.3);--glow-d:rgba(192,132,252,.3);
+  --ea:#388bff;--ma:#ff6e32;--da:#c084fc;--la:#00c8aa;
+  --sel-e:#00e5ff;--sel-m:#ffd700;--sel-d:#f0abfc;--sel-l:#00ffe8;
+  --glow-e:rgba(56,139,255,.3);--glow-m:rgba(255,110,50,.3);--glow-d:rgba(192,132,252,.3);--glow-l:rgba(0,200,170,.3);
 }
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
   min-height:100vh;display:flex;flex-direction:column;align-items:center;
@@ -38,11 +38,11 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 @keyframes pulse-border{0%,100%{box-shadow:0 0 18px rgba(0,229,255,.25)}50%{box-shadow:0 0 32px rgba(0,229,255,.5)}}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
 .theme-btn{
-  padding:.45rem .9rem;border-radius:50px;border:1px solid var(--border);
-  background:rgba(255,255,255,.04);color:var(--sub);font-size:.76rem;font-weight:600;
-  cursor:pointer;transition:all .2s
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+  background:rgba(255,255,255,.06);color:var(--sub);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;padding:0
 }
-.theme-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+.theme-btn:hover{border-color:rgba(255,255,255,.3);color:var(--text);background:rgba(255,255,255,.12)}
 
 /* ── Mode bar ── */
 .mode-bar{display:flex;align-items:center;gap:.55rem;justify-content:center;flex-wrap:wrap}
@@ -76,6 +76,7 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 .panel.earth::before{background:var(--glow-e)}
 .panel.mars::before{background:var(--glow-m)}
 .panel.darian::before{background:var(--glow-d)}
+.panel.lunar::before{background:var(--glow-l)}
 .panel.synced{border-color:rgba(0,229,255,.3)}
 
 /* ── Badge & top row ── */
@@ -86,6 +87,7 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 .earth .dot{background:var(--ea);box-shadow:0 0 7px var(--ea)}
 .mars .dot{background:var(--ma);box-shadow:0 0 7px var(--ma)}
 .darian .dot{background:var(--da);box-shadow:0 0 7px var(--da)}
+.lunar .dot{background:var(--la);box-shadow:0 0 7px var(--la)}
 .now-btn{
   padding:.3rem .8rem;border-radius:20px;border:1px solid var(--border);
   background:transparent;color:var(--sub);font-size:.72rem;cursor:pointer;transition:all .2s
@@ -106,6 +108,7 @@ canvas.clock-face{display:block}
 .earth .clock-digital{color:#7bb8ff}
 .mars .clock-digital{color:#ffaa70}
 .darian .clock-digital{color:#c084fc}
+.lunar .clock-digital{color:var(--la)}
 .tz-bar{display:flex;align-items:center;gap:.5rem;width:100%;z-index:1}
 .tz-label{font-size:.72rem;color:var(--sub);white-space:nowrap;flex-shrink:0}
 .tz-select{flex:1;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;font-size:.78rem;cursor:pointer;outline:none;transition:border-color .2s}
@@ -178,11 +181,11 @@ body.light .tz-select{background:#f0f2ff}
 .mini-cal td{text-align:center;padding:.28rem .06rem;border-radius:6px;cursor:pointer;transition:background .12s;user-select:none}
 .mini-cal td:hover:not(.empty){background:rgba(255,255,255,.08)}
 .mini-cal td.empty{cursor:default}
-.mini-cal td.today{font-weight:700;color:#fff;border-radius:50%}
+.mini-cal td.today{font-weight:700;color:#fff;border-radius:6px}
 .earth .mini-cal td.today{background:var(--ea)}
 .mars .mini-cal td.today{background:var(--ma)}
 .darian .mini-cal td.today{background:var(--da)}
-.mini-cal td.selected{border-radius:50%;font-weight:700;color:#000}
+.mini-cal td.selected{border-radius:6px;font-weight:700;color:#000}
 .earth .mini-cal td.selected{background:var(--sel-e)}
 .mars .mini-cal td.selected{background:var(--sel-m)}
 .darian .mini-cal td.selected{background:var(--sel-d)}
@@ -207,6 +210,15 @@ body.light .tz-select{background:#f0f2ff}
 }
 .info-row span{white-space:nowrap}
 .info-row strong{color:var(--text)}
+.lst-time-display{width:100%;background:rgba(0,200,170,.06);border:1px solid rgba(0,200,170,.15);border-radius:10px;padding:.6rem;z-index:1}
+.lst-row{display:flex;align-items:baseline;gap:.25rem;justify-content:center;flex-wrap:wrap}
+.lst-val{font-size:1.5rem;font-weight:800;color:var(--la);font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}
+.lst-unit{font-size:.6rem;color:var(--sub);letter-spacing:.05em;text-transform:uppercase;margin-right:.4rem}
+.lst-sep{font-size:1.5rem;font-weight:800;color:var(--sub);margin:0 .1rem}
+.lst-ref{width:100%;font-size:.68rem;color:var(--sub);z-index:1;border-top:1px solid var(--border);padding-top:.5rem}
+.lst-ref-row{display:flex;justify-content:space-between;padding:.1rem 0}
+.lst-ref-row strong{color:var(--text)}
+.badge-sub{font-size:.65rem;color:var(--sub);letter-spacing:.03em}
 
 /* ═══════════════════════════════════════
    DATE PICKER POPOVER
@@ -265,11 +277,12 @@ body.light .dp-popover{
 body.light .nbtn,
 body.light .sync-btn,
 body.light .now-btn,
-body.light .theme-btn,
 body.light .mode-btn,
 body.light .dp-ybtn{
   border-color:rgba(0,0,0,.16);background:rgba(30,30,50,.03)
 }
+body.light .theme-btn{background:rgba(0,0,0,.04);color:var(--sub)}
+body.light .theme-btn:hover{background:rgba(0,0,0,.1)}
 body.light .mini-cal td:hover:not(.empty){background:rgba(0,0,0,.06)}
 body.light .cal-nav-title:hover{background:rgba(0,0,0,.06)}
 body.light .dp-year-lbl:hover,
@@ -280,20 +293,23 @@ body.light canvas.clock-face{background:transparent;}
 <body>
 
 <header>
-  <h1>🌍 Dashboard Tierra &amp; Marte 🔴🟣</h1>
+  <h1>Calendario Terrestre - Marciano</h1>
   <p>MTC · Calendarios Exodus (Silin) y Dariano · 1 sol♂ = 1.02749125 días♁ · MY 1 = 11 abr 1955</p>
 </header>
 
 <div class="sync-bar">
   <button class="sync-btn" id="sync-toggle" onclick="toggleSync()">
-    <span class="sync-dot"></span><span id="sync-label">🔗 Sincronizar calendarios</span>
+    <span class="sync-dot"></span><span id="sync-label">Sincronizar calendarios</span>
   </button>
-  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ Modo claro</button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Modo claro" aria-label="Modo claro">
+    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
 </div>
 <div class="mode-bar">
-  <button class="mode-btn mode-earth active-e" id="btn-mode-earth" onclick="setMarsMode('none')">🌍 Terrestre</button>
-  <button class="mode-btn mode-darian" id="btn-mode-darian" onclick="setMarsMode('darian')">🟣 Cambiar a Dariano</button>
-  <button class="mode-btn mode-silin" id="btn-mode-silin" onclick="setMarsMode('silin')">🔴 Cambiar a Silin</button>
+  <button class="mode-btn mode-earth active-e" id="btn-mode-earth" onclick="setMarsMode('none')">Terrestre</button>
+  <button class="mode-btn mode-darian" id="btn-mode-darian" onclick="setMarsMode('darian')">Dariano</button>
+  <button class="mode-btn mode-silin" id="btn-mode-silin" onclick="setMarsMode('silin')">Silin</button>
 </div>
 
 <div class="grid">
@@ -302,10 +318,10 @@ body.light canvas.clock-face{background:transparent;}
   <div class="panel earth" id="panel-earth">
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Tierra — UTC</div>
-      <button class="now-btn" id="earth-now-btn" onclick="goEarthNow()">● Hoy</button>
+      <button class="now-btn" id="earth-now-btn" onclick="goEarthNow()">Hoy</button>
     </div>
     <div class="tz-bar">
-      <span class="tz-label">🕐 Zona:</span>
+      <span class="tz-label">Zona:</span>
       <select id="tz-select" class="tz-select" onchange="onTzChange()"></select>
     </div>
     <div class="clock-wrap">
@@ -340,11 +356,50 @@ body.light canvas.clock-face{background:transparent;}
     </div>
   </div>
 
+  <!-- ═══════ LUNA — LST ═══════ -->
+  <div class="panel lunar" id="panel-lunar">
+    <div class="panel-top">
+      <div>
+        <div class="badge"><span class="dot"></span>Luna — LST</div>
+        <div class="badge-sub">Lunar Standard Time · Franklin 1969</div>
+      </div>
+    </div>
+    <div class="clock-wrap">
+      <canvas class="clock-face" id="canvas-lst" width="190" height="190"></canvas>
+      <div class="clock-digital" id="digital-lst">00:00.0</div>
+    </div>
+    <div class="date-block">
+      <div class="day-num" id="lst-lune" style="color:var(--la)">1</div>
+      <div class="month-year">Lunación <strong id="lst-lunation">1</strong></div>
+      <div class="weekday">Lúnio (día lunar)</div>
+    </div>
+    <div class="lst-time-display">
+      <div class="lst-row">
+        <span class="lst-val" id="lst-lunour">00</span><span class="lst-unit">Lunours</span>
+        <span class="lst-sep">:</span>
+        <span class="lst-val" id="lst-centilunour">00</span><span class="lst-unit">Centilunours</span>
+        <span class="lst-sep">.</span>
+        <span class="lst-val" id="lst-millilunour">0</span><span class="lst-unit">Millilunours</span>
+      </div>
+    </div>
+    <div class="lst-ref">
+      <div class="lst-ref-row"><span>1 Lune</span><strong>= 85,048.09 s♁</strong></div>
+      <div class="lst-ref-row"><span>1 Lunour</span><strong>= 3,543.67 s♁</strong></div>
+      <div class="lst-ref-row"><span>1 Centilunour</span><strong>= 35.44 s♁</strong></div>
+      <div class="lst-ref-row"><span>Época</span><strong>17 ene 1923 02:41 UTC</strong></div>
+    </div>
+    <div class="info-row">
+      <span>Lunación: <strong id="lst-lunation-info">—</strong></span>
+      <span>Lúnio: <strong id="lst-lune-info">—</strong></span>
+      <span>Hora: <strong id="lst-time">—</strong></span>
+    </div>
+  </div>
+
   <!-- ═══════ MARTE — SILIN ═══════ -->
   <div class="panel mars" id="panel-mars" style="display:none">
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Marte — Silin</div>
-      <button class="now-btn" id="mars-now-btn" onclick="goMarsNow()">● Ahora</button>
+      <button class="now-btn" id="mars-now-btn" onclick="goMarsNow()">Ahora</button>
     </div>
     <div class="clock-wrap">
       <canvas class="clock-face" id="canvas-mars" width="190" height="190"></canvas>
@@ -393,7 +448,7 @@ body.light canvas.clock-face{background:transparent;}
   <div class="panel darian" id="panel-darian" style="display:none">
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Marte — Dariano</div>
-      <button class="now-btn" id="darian-now-btn" onclick="goDarianNow()">● Ahora</button>
+      <button class="now-btn" id="darian-now-btn" onclick="goDarianNow()">Ahora</button>
     </div>
     <div class="clock-wrap">
       <canvas class="clock-face" id="canvas-darian" width="190" height="190"></canvas>
@@ -477,6 +532,12 @@ const MARS_SOL_RATIO = 1.02749125;
 const MSD_EPOCH_JD   = 2405522.0028779;
 const MSD_DIVISOR    = 1.0274912517;
 const SILIN_EPOCH_MS = Date.UTC(1955, 3, 11, 0, 0, 0);
+const LST_EPOCH_MS    = Date.UTC(1923, 0, 17, 2, 41, 0);
+const LUNATION_SEC    = 2551442.8;
+const LUNE_SEC        = 85048.0933;
+const LUNOUR_SEC      = 3543.6705;
+const CENTILUNOUR_SEC = 35.4367;
+const MILLILUNOUR_SEC = 3.54367;
 const MARS_YEAR_SOLS = 686.9713 / MARS_SOL_RATIO;
 const MAX_EARTH_YEAR = 3000;
 const MAX_MARS_YEAR  = 556;
@@ -667,6 +728,16 @@ const MP = { bgC:'#2a1505',bgE:'#160a02',bezel:'#ff6e32',
   maj:'#ffaa70',min:'rgba(255,140,60,.4)',num:'#ffccaa',hH:'#fff0e8',mH:'#ffaa70',sH:'#00e5ff',ctr:'#ff6e32' };
 const DP2 = { bgC:'#1e0e2e',bgE:'#0f0518',bezel:'#c084fc',
   maj:'#c084fc',min:'rgba(192,132,252,.35)',num:'#d8a8fc',hH:'#f0e8ff',mH:'#c084fc',sH:'#f0abfc',ctr:'#c084fc' };
+const EP_LIGHT = { bgC:'#dce8ff',bgE:'#f0f4ff',bezel:'#388bff',
+  maj:'#3070cc',min:'rgba(56,139,255,.35)',num:'#2050aa',hH:'#1a3a80',mH:'#388bff',sH:'#cc3333',ctr:'#388bff' };
+const MP_LIGHT = { bgC:'#ffe8d8',bgE:'#fff4ee',bezel:'#ff6e32',
+  maj:'#cc4400',min:'rgba(255,110,50,.35)',num:'#aa3300',hH:'#7a2000',mH:'#ff6e32',sH:'#0077aa',ctr:'#ff6e32' };
+const DP2_LIGHT = { bgC:'#eedcff',bgE:'#f8f0ff',bezel:'#c084fc',
+  maj:'#8840cc',min:'rgba(192,132,252,.35)',num:'#6620aa',hH:'#440088',mH:'#c084fc',sH:'#e040fb',ctr:'#c084fc' };
+const LST_DARK  = { bgC:'#001a1a',bgE:'#000d0d',bezel:'#00c8aa',
+  maj:'#00e8c8',min:'rgba(0,200,170,.35)',num:'#80ffe8',hH:'#e0fff8',mH:'#00c8aa',sH:'#ffee00',ctr:'#00c8aa' };
+const LST_LIGHT = { bgC:'#d0fff8',bgE:'#eafffe',bezel:'#009f88',
+  maj:'#007a66',min:'rgba(0,159,136,.35)',num:'#004d44',hH:'#002222',mH:'#009f88',sH:'#aa8800',ctr:'#009f88' };
 
 function drawClock(id, h, m, s, p){
   const cv = document.getElementById(id); if(!cv) return;
@@ -863,15 +934,15 @@ function onEarthClick(d){
   eSelDay = (eSelDay===d) ? null : d; eNavLive = false;
   const now = new Date(); renderEarth(now);
   const txt = eSelDay
-    ? '📅 ' + EARTH_DAYS_FULL[new Date(Date.UTC(eNavYear,eNavMonth-1,eSelDay)).getUTCDay()]
+    ? EARTH_DAYS_FULL[new Date(Date.UTC(eNavYear,eNavMonth-1,eSelDay)).getUTCDay()]
       + `, ${eSelDay} de ${EARTH_MONTHS[eNavMonth-1]} de ${eNavYear}` : null;
   setSelInfo('earth', txt);
   if(syncMode && eSelDay){
     syncFromEarth(eNavYear, eNavMonth, eSelDay, true);
     const sil = earthToSilin(eNavYear,eNavMonth,eSelDay);
-    setSelInfo('mars', `🔴 ${MARS_DAYS_FULL[sil.weekday]}, Sol ${sil.sol} de ${MARS_MONTHS[sil.month-1]}, MY ${sil.year}`);
+    setSelInfo('mars', `${MARS_DAYS_FULL[sil.weekday]}, Sol ${sil.sol} de ${MARS_MONTHS[sil.month-1]}, MY ${sil.year}`);
     const dar = earthToDar(eNavYear,eNavMonth,eSelDay);
-    setSelInfo('darian', `🟣 ${DAR_DAYS_FULL[dar.weekday]}, Sol ${dar.sol} de ${DAR_MONTHS[dar.month-1]}, ${dar.year}`);
+    setSelInfo('darian', `${DAR_DAYS_FULL[dar.weekday]}, Sol ${dar.sol} de ${DAR_MONTHS[dar.month-1]}, ${dar.year}`);
   }
 }
 
@@ -879,14 +950,14 @@ function onMarsClick(sol){
   mSelSol = (mSelSol===sol) ? null : sol; mNavLive = false;
   const now = new Date(); renderMars(now);
   const wd = (solsAtMonthStart(mNavYear,mNavMonth) + (mSelSol||1) - 1) % 7;
-  const txt = mSelSol ? `🔴 ${MARS_DAYS_FULL[wd]}, Sol ${mSelSol} de ${MARS_MONTHS[mNavMonth-1]}, MY ${mNavYear}` : null;
+  const txt = mSelSol ? `${MARS_DAYS_FULL[wd]}, Sol ${mSelSol} de ${MARS_MONTHS[mNavMonth-1]}, MY ${mNavYear}` : null;
   setSelInfo('mars', txt);
   if(syncMode && mSelSol){
     syncFromSilin(mNavYear, mNavMonth, mSelSol, true);
     const ed = silinToEarth(mNavYear,mNavMonth,mSelSol);
-    setSelInfo('earth', `📅 ${EARTH_DAYS_FULL[ed.getUTCDay()]}, ${ed.getUTCDate()} de ${EARTH_MONTHS[ed.getUTCMonth()]} de ${ed.getUTCFullYear()}`);
+    setSelInfo('earth', `${EARTH_DAYS_FULL[ed.getUTCDay()]}, ${ed.getUTCDate()} de ${EARTH_MONTHS[ed.getUTCMonth()]} de ${ed.getUTCFullYear()}`);
     const dar = silinToDar(mNavYear,mNavMonth,mSelSol);
-    setSelInfo('darian', `🟣 ${DAR_DAYS_FULL[dar.weekday]}, Sol ${dar.sol} de ${DAR_MONTHS[dar.month-1]}, ${dar.year}`);
+    setSelInfo('darian', `${DAR_DAYS_FULL[dar.weekday]}, Sol ${dar.sol} de ${DAR_MONTHS[dar.month-1]}, ${dar.year}`);
   }
 }
 
@@ -894,14 +965,14 @@ function onDarClick(sol){
   dSelSol = (dSelSol===sol) ? null : sol; dNavLive = false;
   const now = new Date(); renderDar(now);
   const wd = (darSolsAtMonthStart(dNavYear,dNavMonth) + (dSelSol||1) - 1 + 1) % 7;
-  const txt = dSelSol ? `🟣 ${DAR_DAYS_FULL[wd]}, Sol ${dSelSol} de ${DAR_MONTHS[dNavMonth-1]}, ${dNavYear}` : null;
+  const txt = dSelSol ? `${DAR_DAYS_FULL[wd]}, Sol ${dSelSol} de ${DAR_MONTHS[dNavMonth-1]}, ${dNavYear}` : null;
   setSelInfo('darian', txt);
   if(syncMode && dSelSol){
     syncFromDar(dNavYear, dNavMonth, dSelSol, true);
     const ed = darToEarth(dNavYear,dNavMonth,dSelSol);
-    setSelInfo('earth', `📅 ${EARTH_DAYS_FULL[ed.getUTCDay()]}, ${ed.getUTCDate()} de ${EARTH_MONTHS[ed.getUTCMonth()]} de ${ed.getUTCFullYear()}`);
+    setSelInfo('earth', `${EARTH_DAYS_FULL[ed.getUTCDay()]}, ${ed.getUTCDate()} de ${EARTH_MONTHS[ed.getUTCMonth()]} de ${ed.getUTCFullYear()}`);
     const sil = darToSilin(dNavYear,dNavMonth,dSelSol);
-    setSelInfo('mars', `🔴 ${MARS_DAYS_FULL[sil.weekday]}, Sol ${sil.sol} de ${MARS_MONTHS[sil.month-1]}, MY ${sil.year}`);
+    setSelInfo('mars', `${MARS_DAYS_FULL[sil.weekday]}, Sol ${sil.sol} de ${MARS_MONTHS[sil.month-1]}, MY ${sil.year}`);
   }
 }
 
@@ -942,14 +1013,14 @@ function goDarianNow(){
 function toggleSync(){
   syncMode = !syncMode;
   document.getElementById('sync-toggle').classList.toggle('active', syncMode);
-  document.getElementById('sync-label').textContent = syncMode ? '⚡ Sincronizado' : '🔗 Sincronizar calendarios';
-  ['panel-earth','panel-mars','panel-darian'].forEach(id => {
+  document.getElementById('sync-label').textContent = syncMode ? 'Sincronizado' : 'Sincronizar calendarios';
+  ['panel-earth','panel-lunar','panel-mars','panel-darian'].forEach(id => {
     document.getElementById(id).classList.toggle('synced', syncMode);
   });
 }
 
 function updateGridLayout(){
-  const visiblePanels = ['panel-earth','panel-mars','panel-darian']
+  const visiblePanels = ['panel-earth','panel-lunar','panel-mars','panel-darian']
     .map(id => document.getElementById(id))
     .filter(el => el && el.style.display !== 'none').length;
   document.querySelector('.grid').classList.toggle('single-panel', visiblePanels === 1);
@@ -978,8 +1049,13 @@ function setMarsMode(mode){
 function toggleTheme(){
   darkMode = !darkMode;
   document.body.classList.toggle('light', !darkMode);
+  document.getElementById('theme-icon-sun').style.display = darkMode ? 'block' : 'none';
+  document.getElementById('theme-icon-moon').style.display = darkMode ? 'none' : 'block';
   const themeBtn = document.getElementById('theme-btn');
-  themeBtn.textContent = darkMode ? '☀️ Modo claro' : '🌙 Modo oscuro';
+  const tooltip = darkMode ? 'Modo claro' : 'Modo oscuro';
+  themeBtn.title = tooltip;
+  themeBtn.setAttribute('aria-label', tooltip);
+  tick();
 }
 
 function initTzSelect(){
@@ -1007,17 +1083,48 @@ function renderEarth(now){
   const local=new Date(now.getTime()+selectedUtcOffset*3600000);
   const tY=local.getUTCFullYear(),tM=local.getUTCMonth()+1,tD=local.getUTCDate();
   const tH=local.getUTCHours(),tMin=local.getUTCMinutes(),tS=local.getUTCSeconds();
+  const isLight = document.body.classList.contains('light');
   document.getElementById('earth-day').textContent=tD;
   document.getElementById('earth-month-year').textContent=EARTH_MONTHS[tM-1]+' '+tY;
   document.getElementById('earth-weekday').textContent=EARTH_DAYS_FULL[local.getUTCDay()];
   document.getElementById('earth-jdn').textContent=getJDN(tY,tM,tD);
   document.getElementById('earth-doy').textContent=getDOY(tY,tM,tD);
   document.getElementById('earth-week').textContent='S'+pad(getISOWeek(local));
-  drawClock('canvas-earth',tH,tMin,tS,EP);
+  drawClock('canvas-earth',tH,tMin,tS,isLight ? EP_LIGHT : EP);
   document.getElementById('digital-earth').textContent=pad(tH)+':'+pad(tMin)+':'+pad(tS);
   document.getElementById('earth-now-btn').classList.toggle('away',!eNavLive);
   if(eNavLive){eNavYear=tY;eNavMonth=tM;}
   buildEarthCal(eNavYear,eNavMonth,tY,tM,tD,eSelDay);
+}
+
+function getLST(now){
+  const elapsed = (now.getTime() - LST_EPOCH_MS) / 1000;
+  const lunation = Math.floor(elapsed / LUNATION_SEC) + 1;
+  const remLun   = elapsed % LUNATION_SEC;
+  const lune     = Math.floor(remLun / LUNE_SEC) + 1;
+  const remLune  = remLun % LUNE_SEC;
+  const lunour   = Math.floor(remLune / LUNOUR_SEC);
+  const remLH    = remLune % LUNOUR_SEC;
+  const centilunour = Math.floor(remLH / CENTILUNOUR_SEC);
+  const remCL    = remLH % CENTILUNOUR_SEC;
+  const millilunour = Math.floor(remCL / MILLILUNOUR_SEC);
+  return { lunation, lune, lunour, centilunour, millilunour };
+}
+
+function renderLST(now){
+  const lst = getLST(now);
+  document.getElementById('lst-lunation').textContent = lst.lunation;
+  document.getElementById('lst-lunation-info').textContent = lst.lunation;
+  document.getElementById('lst-lune').textContent = lst.lune;
+  document.getElementById('lst-lune-info').textContent = lst.lune;
+  document.getElementById('lst-time').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
+  document.getElementById('lst-lunour').textContent = pad(lst.lunour);
+  document.getElementById('lst-centilunour').textContent = pad(lst.centilunour);
+  document.getElementById('lst-millilunour').textContent = lst.millilunour;
+  const isLight = document.body.classList.contains('light');
+  const frac = (lst.lunour * LUNOUR_SEC + lst.centilunour * CENTILUNOUR_SEC + lst.millilunour * MILLILUNOUR_SEC) / LUNE_SEC;
+  drawClock('canvas-lst', lst.lunour, lst.centilunour, lst.millilunour, isLight ? LST_LIGHT : LST_DARK);
+  document.getElementById('digital-lst').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
 }
 
 /* ══════════════════════════════════════════════
@@ -1058,18 +1165,20 @@ function renderDar(now){
 function tick(){
   const now = new Date();
   renderEarth(now);
+  renderLST(now);
 
   // Mars clocks -- only active panel
   const msd=getMSD(now), mtcH=getMTC(msd);
   const {h,m,s}=mtcToHMS(mtcH);
+  const isLight = document.body.classList.contains('light');
   if(marsMode === 'silin'){
     document.getElementById('digital-mars').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    drawClock('canvas-mars', h, m, s, MP);
+    drawClock('canvas-mars', h, m, s, isLight ? MP_LIGHT : MP);
     if(mNavLive){ const sil=silinFromTotalSols(solsFromEpoch(now)); mNavYear=sil.year; mNavMonth=sil.month; }
     renderMars(now);
   } else if(marsMode === 'darian'){
     document.getElementById('digital-darian').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    drawClock('canvas-darian', h, m, s, DP2);
+    drawClock('canvas-darian', h, m, s, isLight ? DP2_LIGHT : DP2);
     if(dNavLive){ const dar=darFromTotalSols(solsFromEpoch(now)); dNavYear=dar.year; dNavMonth=dar.month; }
     renderDar(now);
   }
