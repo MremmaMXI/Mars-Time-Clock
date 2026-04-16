@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Calendario Terrestre - Marciano</title>
+<title>Calendario Tierra - Luna & Marciano</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -101,7 +101,7 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 
 /* ── Clock ── */
 .clock-wrap{position:relative;width:190px;display:flex;flex-direction:column;align-items:center;z-index:1}
-canvas.clock-face{display:block}
+canvas.clock-face{display:block;max-width:100%}
 .clock-digital{
   position:static;margin-top:6px;
   font-size:1rem;font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.05em;white-space:nowrap
@@ -312,12 +312,69 @@ body.light .cal-nav-title:hover{background:rgba(0,0,0,.06)}
 body.light .dp-year-lbl:hover,
 body.light .dp-cell:hover{background:rgba(0,0,0,.08)}
 body.light canvas.clock-face{background:transparent;}
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 640px){
+  body{ padding:.75rem .5rem 2rem; gap:.8rem; }
+
+  header h1{ font-size:1.1rem; }
+  header p{ font-size:.7rem; }
+
+  .sync-bar{ gap:.5rem; flex-wrap:wrap; justify-content:center; }
+  .sync-btn{ padding:.4rem .9rem; font-size:.78rem; }
+  .mode-bar{ gap:.35rem; flex-wrap:wrap; justify-content:center; }
+  .mode-btn{ padding:.4rem .8rem; font-size:.75rem; }
+  .theme-btn{ width:32px; height:32px; }
+
+  .grid{
+    grid-template-columns: 1fr !important;
+    gap:1rem;
+    width:100%;
+  }
+
+  .panel{
+    padding:1.1rem .9rem 1.3rem;
+    gap:.7rem;
+    width:100%;
+    max-width:100%;
+  }
+
+  .clock-wrap{ width:160px; height:160px; }
+  canvas.clock-face{ width:160px !important; height:160px !important; }
+
+  .day-num{ font-size:2.3rem; }
+  .month-year{ font-size:.85rem; }
+
+  .cal-nav-title{ font-size:.78rem; }
+  .nbtn{ width:26px; height:26px; font-size:.75rem; }
+
+  .mini-cal table{ font-size:.7rem; }
+  .mini-cal td{ padding:.22rem .04rem; }
+  .mini-cal th{ font-size:.65rem; }
+
+  .info-row{ font-size:.68rem; }
+
+  .mars-sec-ref, .lst-sec-ref{ font-size:.64rem; }
+
+  .dp-popover{ min-width:190px; padding:.6rem; }
+  .dp-cell{ font-size:.66rem; padding:.28rem .06rem; }
+
+  footer{ font-size:.62rem; padding:0 .5rem; }
+}
+
+@media (max-width: 400px){
+  .clock-wrap{ width:145px; height:145px; }
+  canvas.clock-face{ width:145px !important; height:145px !important; }
+  .day-num{ font-size:2rem; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Calendario Terrestre - Marciano</h1>
+  <h1>Calendario Tierra - Luna &amp; Marciano</h1>
   <p>MTC · Calendarios Exodus (Silin) y Dariano · 1 sol♂ = 1.02749125 días♁ · MY 1 = 11 abr 1955</p>
 </header>
 
@@ -802,6 +859,14 @@ function drawClock(id, h, m, s, p){
     const a=(i/12)*Math.PI*2-Math.PI/2;
     ctx.fillText(i, cx+Math.cos(a)*(r-21), cy+Math.sin(a)*(r-21));
   }
+  // Draw minute numbers (every 5 min) at inner ring
+  ctx.font = '6px Segoe UI,sans-serif';
+  ctx.fillStyle = p.min;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  [5,10,15,20,25,30,35,40,45,50,55].forEach(mn => {
+    const a = (mn / 60) * Math.PI * 2 - Math.PI / 2;
+    ctx.fillText(mn, cx + Math.cos(a) * (r - 34), cy + Math.sin(a) * (r - 34));
+  });
   function hand(angle, len, w, col){
     ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=8;
     ctx.beginPath(); ctx.moveTo(cx,cy);
@@ -845,6 +910,31 @@ function drawLSTClock(id, lunour, centilunour, millilunour, p){
   for(let i=0; i<24; i++){
     const a=(i/24)*Math.PI*2-Math.PI/2;
     ctx.fillText(i, cx+Math.cos(a)*(r-18), cy+Math.sin(a)*(r-18));
+  }
+  // Centilunour numbers (every 10, at inner ring ~r-32)
+  ctx.font = '6px Segoe UI,sans-serif';
+  ctx.fillStyle = p.min;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  [10,20,30,40,50,60,70,80,90].forEach(cl => {
+    const a = (cl / 100) * Math.PI * 2 - Math.PI / 2;
+    ctx.fillText(cl, cx + Math.cos(a) * (r - 32), cy + Math.sin(a) * (r - 32));
+  });
+
+  // 10 millilunour (second) tick marks at innermost ring
+  for(let i = 0; i < 10; i++){
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * (r - 38), cy + Math.sin(a) * (r - 38));
+    ctx.lineTo(cx + Math.cos(a) * (r - 42), cy + Math.sin(a) * (r - 42));
+    ctx.strokeStyle = p.sH; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  // Millilunour numbers (0–9, at innermost ring ~r-46)
+  ctx.font = '6.5px Segoe UI,sans-serif';
+  ctx.fillStyle = p.sH;
+  for(let ml = 0; ml < 10; ml++){
+    const a = (ml / 10) * Math.PI * 2 - Math.PI / 2;
+    ctx.fillText(ml, cx + Math.cos(a) * (r - 46), cy + Math.sin(a) * (r - 46));
   }
 
   function hand(angle, len, w, col){
