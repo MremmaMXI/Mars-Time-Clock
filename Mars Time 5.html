@@ -1249,6 +1249,8 @@ function getLST(now){
 function renderLST(now){
   const lst = getLST(now);
   const isLight = document.body.classList.contains('light');
+  const mlSec = MILLILUNOUR_SEC.toFixed(5);
+  const slowerPct = ((MILLILUNOUR_SEC - 1) * 100).toFixed(2);
 
   document.getElementById('lst-lunation').textContent = lst.lunation;
   document.getElementById('lst-lune-live').textContent = lst.lune;
@@ -1259,6 +1261,8 @@ function renderLST(now){
   document.getElementById('lst-time').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
   document.getElementById('lst-lunation-info').textContent = lst.lunation;
   document.getElementById('lst-lune-info').textContent = lst.lune;
+  document.getElementById('lst-ml-val').textContent = mlSec;
+  document.getElementById('lst-pct').textContent = `+${slowerPct}%`;
 
   drawLSTClock('canvas-lst', lst.lunour, lst.centilunour, lst.millilunour, isLight ? LST_LIGHT : LST_DARK);
   document.getElementById('lst-now-btn').classList.toggle('away', !lstNavLive);
