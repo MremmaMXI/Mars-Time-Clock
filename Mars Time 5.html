@@ -97,15 +97,20 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 @keyframes blink{50%{opacity:.4}}
 
 /* ── Clock ── */
-.clock-wrap{position:relative;width:190px;height:190px;z-index:1}
+.clock-wrap{position:relative;width:190px;display:flex;flex-direction:column;align-items:center;z-index:1}
 canvas.clock-face{display:block}
 .clock-digital{
-  position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  position:static;margin-top:6px;
   font-size:1rem;font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.05em;white-space:nowrap
 }
 .earth .clock-digital{color:#7bb8ff}
 .mars .clock-digital{color:#ffaa70}
 .darian .clock-digital{color:#c084fc}
+.tz-bar{display:flex;align-items:center;gap:.5rem;width:100%;z-index:1}
+.tz-label{font-size:.72rem;color:var(--sub);white-space:nowrap;flex-shrink:0}
+.tz-select{flex:1;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;font-size:.78rem;cursor:pointer;outline:none;transition:border-color .2s}
+.tz-select:focus{border-color:var(--ea)}
+body.light .tz-select{background:#f0f2ff}
 
 /* ── Mars seconds reference ── */
 .mars-sec-ref{
@@ -269,6 +274,7 @@ body.light .mini-cal td:hover:not(.empty){background:rgba(0,0,0,.06)}
 body.light .cal-nav-title:hover{background:rgba(0,0,0,.06)}
 body.light .dp-year-lbl:hover,
 body.light .dp-cell:hover{background:rgba(0,0,0,.08)}
+body.light canvas.clock-face{background:transparent;}
 </style>
 </head>
 <body>
@@ -297,6 +303,10 @@ body.light .dp-cell:hover{background:rgba(0,0,0,.08)}
     <div class="panel-top">
       <div class="badge"><span class="dot"></span>Tierra — UTC</div>
       <button class="now-btn" id="earth-now-btn" onclick="goEarthNow()">● Hoy</button>
+    </div>
+    <div class="tz-bar">
+      <span class="tz-label">🕐 Zona:</span>
+      <select id="tz-select" class="tz-select" onchange="onTzChange()"></select>
     </div>
     <div class="clock-wrap">
       <canvas class="clock-face" id="canvas-earth" width="190" height="190"></canvas>
@@ -506,6 +516,7 @@ let mNavYear, mNavMonth, mSelSol = null, mNavLive = true;
 let dNavYear, dNavMonth, dSelSol = null, dNavLive = true;
 let marsMode = 'none';
 let darkMode = true;
+let selectedUtcOffset = -5;
 
 /* ══════════════════════════════════════════════
    UTILIDADES GENERALES
@@ -971,19 +982,42 @@ function toggleTheme(){
   themeBtn.textContent = darkMode ? '☀️ Modo claro' : '🌙 Modo oscuro';
 }
 
+function initTzSelect(){
+  const sel=document.getElementById('tz-select');
+  for(let o=-12;o<=14;o++){
+    const op=document.createElement('option');
+    op.value=o;
+    op.textContent='UTC'+(o>=0?'+':'')+o;
+    if(o===-5)op.selected=true;
+    sel.appendChild(op);
+  }
+}
+
+function onTzChange(){
+  selectedUtcOffset=parseInt(document.getElementById('tz-select').value);
+  const s=selectedUtcOffset>=0?'+':'';
+  document.querySelector('#panel-earth .badge').innerHTML='<span class="dot"></span>Tierra — UTC'+s+selectedUtcOffset;
+  renderEarth(new Date());
+}
+
 /* ══════════════════════════════════════════════
    RENDER EARTH
 ══════════════════════════════════════════════ */
 function renderEarth(now){
-  const tY=now.getUTCFullYear(), tM=now.getUTCMonth()+1, tD=now.getUTCDate();
-  document.getElementById('earth-day').textContent        = tD;
-  document.getElementById('earth-month-year').textContent = `${EARTH_MONTHS[tM-1]} ${tY}`;
-  document.getElementById('earth-weekday').textContent    = EARTH_DAYS_FULL[now.getUTCDay()];
-  document.getElementById('earth-jdn').textContent  = getJDN(tY,tM,tD);
-  document.getElementById('earth-doy').textContent  = getDOY(tY,tM,tD);
-  document.getElementById('earth-week').textContent = `S${pad(getISOWeek(now))}`;
-  document.getElementById('earth-now-btn').classList.toggle('away', !eNavLive);
-  buildEarthCal(eNavYear, eNavMonth, tY, tM, tD, eSelDay);
+  const local=new Date(now.getTime()+selectedUtcOffset*3600000);
+  const tY=local.getUTCFullYear(),tM=local.getUTCMonth()+1,tD=local.getUTCDate();
+  const tH=local.getUTCHours(),tMin=local.getUTCMinutes(),tS=local.getUTCSeconds();
+  document.getElementById('earth-day').textContent=tD;
+  document.getElementById('earth-month-year').textContent=EARTH_MONTHS[tM-1]+' '+tY;
+  document.getElementById('earth-weekday').textContent=EARTH_DAYS_FULL[local.getUTCDay()];
+  document.getElementById('earth-jdn').textContent=getJDN(tY,tM,tD);
+  document.getElementById('earth-doy').textContent=getDOY(tY,tM,tD);
+  document.getElementById('earth-week').textContent='S'+pad(getISOWeek(local));
+  drawClock('canvas-earth',tH,tMin,tS,EP);
+  document.getElementById('digital-earth').textContent=pad(tH)+':'+pad(tMin)+':'+pad(tS);
+  document.getElementById('earth-now-btn').classList.toggle('away',!eNavLive);
+  if(eNavLive){eNavYear=tY;eNavMonth=tM;}
+  buildEarthCal(eNavYear,eNavMonth,tY,tM,tD,eSelDay);
 }
 
 /* ══════════════════════════════════════════════
@@ -1023,12 +1057,6 @@ function renderDar(now){
 ══════════════════════════════════════════════ */
 function tick(){
   const now = new Date();
-
-  // Earth clock (always real time)
-  const eH=now.getUTCHours(), eMi=now.getUTCMinutes(), eSe=now.getUTCSeconds();
-  document.getElementById('digital-earth').textContent = `${pad(eH)}:${pad(eMi)}:${pad(eSe)}`;
-  drawClock('canvas-earth', eH, eMi, eSe, EP);
-  if(eNavLive){ eNavYear=now.getUTCFullYear(); eNavMonth=now.getUTCMonth()+1; }
   renderEarth(now);
 
   // Mars clocks -- only active panel
@@ -1185,6 +1213,8 @@ document.addEventListener('click', function(e){
 ══════════════════════════════════════════════ */
 (function init(){
   const now = new Date();
+  initTzSelect();
+  onTzChange();
   eNavYear = now.getUTCFullYear(); eNavMonth = now.getUTCMonth()+1;
   const sil = silinFromTotalSols(solsFromEpoch(now));
   mNavYear = sil.year; mNavMonth = sil.month;
