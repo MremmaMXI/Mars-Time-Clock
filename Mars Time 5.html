@@ -840,12 +840,12 @@ function drawLSTClock(id, lunour, centilunour, millilunour, p){
     ctx.strokeStyle=p.min; ctx.lineWidth=1.5; ctx.stroke();
   }
 
-  ctx.font='bold 9px Segoe UI,sans-serif'; ctx.fillStyle=p.num;
+  ctx.font='bold 7.5px Segoe UI,sans-serif'; ctx.fillStyle=p.num;
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  [0,6,12,18].forEach(i=>{
+  for(let i=0; i<24; i++){
     const a=(i/24)*Math.PI*2-Math.PI/2;
-    ctx.fillText(i, cx+Math.cos(a)*(r-21), cy+Math.sin(a)*(r-21));
-  });
+    ctx.fillText(i, cx+Math.cos(a)*(r-18), cy+Math.sin(a)*(r-18));
+  }
 
   function hand(angle, len, w, col){
     ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=8;
@@ -967,7 +967,7 @@ function buildLSTCal(nLun, tLun, tLune, sel){
   while(col%6!==0){ html += '<td class="empty"></td>'; col++; }
   html += '</tr></tbody>';
   document.getElementById('cal-lst-table').innerHTML = html;
-  document.getElementById('lst-cal-title').textContent = `Lunación ${nLun}`;
+  document.getElementById('lst-cal-title').textContent = 'Lunación ' + nLun;
   document.getElementById('lst-cal-sub').textContent = `${LUNES_PER_LUNATION} lúnios · 1 lúnio = 23.625 h♁`;
   document.getElementById('lst-lun-prev').disabled = (nLun<=1);
   document.getElementById('lst-lune-prev').disabled = false;
@@ -1009,11 +1009,8 @@ function darianNav(unit, dir){
 }
 
 function lstNav(unit, dir){
-  if(unit==='lune'){
-    lstNavLunation += dir;
-  } else {
-    lstNavLunation += dir * 10;
-  }
+  if(unit==='lun') lstNavLunation += dir * 10;
+  else lstNavLunation += dir;
   lstNavLunation = Math.max(1, Math.min(MAX_LST_LUNATION, lstNavLunation));
   lstSelLune = null; lstNavLive = false; setSelInfo('lst', null);
   renderLST(new Date());
