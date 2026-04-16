@@ -945,6 +945,7 @@ function updateGridLayout(){
 }
 
 function setMarsMode(mode){
+  if(!['none','silin','darian'].includes(mode)) return;
   marsMode = mode;
   const showSilin = mode === 'silin';
   const showDarian = mode === 'darian';
