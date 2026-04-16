@@ -282,12 +282,12 @@ body.light .dp-cell:hover{background:rgba(0,0,0,.08)}
   <button class="sync-btn" id="sync-toggle" onclick="toggleSync()">
     <span class="sync-dot"></span><span id="sync-label">🔗 Sincronizar calendarios</span>
   </button>
-  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️ Modo claro</button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Cambiar a modo claro">☀️ Modo claro</button>
 </div>
 <div class="mode-bar">
-  <button class="mode-btn mode-earth active-e" id="btn-mode-earth" onclick="setMarsMode('none')" disabled>🌍 Terrestre</button>
-  <button class="mode-btn mode-darian" id="btn-mode-darian" onclick="setMarsMode('darian')">🟣 Cambiar a Dariano</button>
-  <button class="mode-btn mode-silin" id="btn-mode-silin" onclick="setMarsMode('silin')">🔴 Cambiar a Silin</button>
+  <button class="mode-btn mode-earth active-e" id="btn-mode-earth" onclick="setMarsMode('none')" aria-label="Mostrar solo modo terrestre">🌍 Terrestre</button>
+  <button class="mode-btn mode-darian" id="btn-mode-darian" onclick="setMarsMode('darian')" aria-label="Cambiar al calendario Dariano">🟣 Cambiar a Dariano</button>
+  <button class="mode-btn mode-silin" id="btn-mode-silin" onclick="setMarsMode('silin')" aria-label="Cambiar al calendario Silin">🔴 Cambiar a Silin</button>
 </div>
 
 <div class="grid">
@@ -954,6 +954,12 @@ function setMarsMode(mode){
   const btnEarth = document.getElementById('btn-mode-earth');
   const btnSilin = document.getElementById('btn-mode-silin');
   const btnDarian = document.getElementById('btn-mode-darian');
+  btnEarth.disabled = (mode === 'none');
+  btnSilin.disabled = showSilin;
+  btnDarian.disabled = showDarian;
+  btnEarth.setAttribute('aria-disabled', String(mode === 'none'));
+  btnSilin.setAttribute('aria-disabled', String(showSilin));
+  btnDarian.setAttribute('aria-disabled', String(showDarian));
   btnEarth.classList.toggle('active-e', mode === 'none');
   btnSilin.classList.toggle('active-m', showSilin);
   btnDarian.classList.toggle('active-d', showDarian);
@@ -963,7 +969,9 @@ function setMarsMode(mode){
 function toggleTheme(){
   darkMode = !darkMode;
   document.body.classList.toggle('light', !darkMode);
-  document.getElementById('theme-btn').textContent = darkMode ? '☀️ Modo claro' : '🌙 Modo oscuro';
+  const themeBtn = document.getElementById('theme-btn');
+  themeBtn.textContent = darkMode ? '☀️ Modo claro' : '🌙 Modo oscuro';
+  themeBtn.setAttribute('aria-label', darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
 }
 
 /* ══════════════════════════════════════════════
@@ -1026,7 +1034,7 @@ function tick(){
   if(eNavLive){ eNavYear=now.getUTCFullYear(); eNavMonth=now.getUTCMonth()+1; }
   renderEarth(now);
 
-  // Mars clocks — only active panel
+  // Mars clocks -- only active panel
   const msd=getMSD(now), mtcH=getMTC(msd);
   const {h,m,s}=mtcToHMS(mtcH);
   if(marsMode === 'silin'){
