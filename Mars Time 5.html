@@ -96,6 +96,7 @@ header p{color:var(--sub);font-size:.78rem;margin-top:.3rem}
 .now-btn.away{color:var(--sel-e);border-color:var(--sel-e);animation:blink .9s step-end infinite}
 .mars .now-btn.away{color:var(--sel-m);border-color:var(--sel-m)}
 .darian .now-btn.away{color:var(--da);border-color:var(--da)}
+.lunar .now-btn.away{color:var(--la);border-color:var(--la)}
 @keyframes blink{50%{opacity:.4}}
 
 /* ── Clock ── */
@@ -163,6 +164,7 @@ body.light .tz-select{background:#f0f2ff}
 .earth .cal-nav-title:hover{background:rgba(56,139,255,.12)}
 .mars .cal-nav-title:hover{background:rgba(255,110,50,.12)}
 .darian .cal-nav-title:hover{background:rgba(192,132,252,.12)}
+.lunar .cal-nav-title:hover{background:rgba(0,200,170,.12)}
 .cal-nav-sub{font-size:.67rem;color:var(--sub);letter-spacing:.05em}
 .nav-group{display:flex;gap:.2rem}
 .nbtn{
@@ -185,13 +187,16 @@ body.light .tz-select{background:#f0f2ff}
 .earth .mini-cal td.today{background:var(--ea)}
 .mars .mini-cal td.today{background:var(--ma)}
 .darian .mini-cal td.today{background:var(--da)}
+.lunar .mini-cal td.today{background:var(--la)}
 .mini-cal td.selected{border-radius:6px;font-weight:700;color:#000}
 .earth .mini-cal td.selected{background:var(--sel-e)}
 .mars .mini-cal td.selected{background:var(--sel-m)}
 .darian .mini-cal td.selected{background:var(--sel-d)}
+.lunar .mini-cal td.selected{background:var(--sel-l)}
 .earth .mini-cal td.today.selected{background:linear-gradient(135deg,var(--ea),var(--sel-e));color:#fff}
 .mars .mini-cal td.today.selected{background:linear-gradient(135deg,var(--ma),var(--sel-m));color:#fff}
 .darian .mini-cal td.today.selected{background:linear-gradient(135deg,var(--da),var(--sel-d));color:#fff}
+.lunar .mini-cal td.today.selected{background:linear-gradient(135deg,var(--la),var(--sel-l));color:#fff}
 
 /* ── Selected info ── */
 .sel-info{
@@ -201,6 +206,7 @@ body.light .tz-select{background:#f0f2ff}
 }
 .mars .sel-info{color:var(--sel-m);background:rgba(255,215,0,.07);border-color:rgba(255,215,0,.15)}
 .darian .sel-info{color:var(--sel-d);background:rgba(240,171,252,.07);border-color:rgba(240,171,252,.15)}
+.lunar .sel-info{color:var(--sel-l);background:rgba(0,255,232,.08);border-color:rgba(0,255,232,.2)}
 .sel-info.visible{display:block}
 
 /* ── Info row ── */
@@ -210,6 +216,24 @@ body.light .tz-select{background:#f0f2ff}
 }
 .info-row span{white-space:nowrap}
 .info-row strong{color:var(--text)}
+.lst-sec-ref{
+  width:100%;padding:.5rem .6rem;border-radius:10px;
+  background:rgba(0,200,170,.06);border:1px solid rgba(0,200,170,.12);
+  font-size:.68rem;color:var(--sub);z-index:1
+}
+.lunar .sec-ref-label strong{color:var(--la)}
+.lst-ref-earth-fill{
+  position:absolute;left:0;top:0;height:100%;width:28.22%;
+  border-radius:4px 0 0 4px;
+  background:linear-gradient(90deg,var(--ea),#5ca8ff)
+}
+.lst-ref-lunar-fill{
+  position:absolute;left:28.22%;top:0;height:100%;width:71.78%;
+  border-radius:0 4px 4px 0;
+  background:linear-gradient(90deg,#00ddbb,var(--la));
+  animation:lst-pulse 3.544s ease-in-out infinite
+}
+@keyframes lst-pulse{0%,100%{opacity:.45}50%{opacity:1}}
 .lst-time-display{width:100%;background:rgba(0,200,170,.06);border:1px solid rgba(0,200,170,.15);border-radius:10px;padding:.6rem;z-index:1}
 .lst-row{display:flex;align-items:baseline;gap:.25rem;justify-content:center;flex-wrap:wrap}
 .lst-val{font-size:1.5rem;font-weight:800;color:var(--la);font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}
@@ -359,35 +383,50 @@ body.light canvas.clock-face{background:transparent;}
   <!-- ═══════ LUNA — LST ═══════ -->
   <div class="panel lunar" id="panel-lunar">
     <div class="panel-top">
-      <div>
-        <div class="badge"><span class="dot"></span>Luna — LST</div>
-        <div class="badge-sub">Lunar Standard Time · Franklin 1969</div>
-      </div>
+      <div class="badge"><span class="dot"></span>Luna — LST</div>
+      <button class="now-btn" id="lst-now-btn" onclick="goLSTNow()">Ahora</button>
     </div>
     <div class="clock-wrap">
       <canvas class="clock-face" id="canvas-lst" width="190" height="190"></canvas>
       <div class="clock-digital" id="digital-lst">00:00.0</div>
     </div>
+    <div class="lst-sec-ref">
+      <div class="sec-ref-label">1 Millilunour = <strong id="lst-ml-val">3.54367</strong> s♁ · <span id="lst-pct">+254.37%</span> más lento</div>
+      <div class="sec-ref-track-wrap">
+        <span class="sec-ref-sym">s♁</span>
+        <div class="sec-ref-track">
+          <div class="lst-ref-earth-fill"></div>
+          <div class="lst-ref-lunar-fill"></div>
+        </div>
+        <span class="sec-ref-sym">☽</span>
+      </div>
+    </div>
     <div class="date-block">
-      <div class="day-num" id="lst-lune" style="color:var(--la)">1</div>
+      <div class="day-num" id="lst-lune-live" style="color:var(--la)">1</div>
       <div class="month-year">Lunación <strong id="lst-lunation">1</strong></div>
       <div class="weekday">Lúnio (día lunar)</div>
     </div>
-    <div class="lst-time-display">
-      <div class="lst-row">
-        <span class="lst-val" id="lst-lunour">00</span><span class="lst-unit">Lunours</span>
-        <span class="lst-sep">:</span>
-        <span class="lst-val" id="lst-centilunour">00</span><span class="lst-unit">Centilunours</span>
-        <span class="lst-sep">.</span>
-        <span class="lst-val" id="lst-millilunour">0</span><span class="lst-unit">Millilunours</span>
+    <div style="display:none">
+      <span id="lst-lunour">00</span>
+      <span id="lst-centilunour">00</span>
+      <span id="lst-millilunour">0</span>
+    </div>
+    <div class="cal-nav">
+      <div class="nav-group">
+        <button class="nbtn" id="lst-lun-prev" onclick="lstNav('lun',-1)" title="Lunación anterior">«</button>
+        <button class="nbtn" id="lst-lune-prev" onclick="lstNav('lune',-1)" title="Lúnio anterior">‹</button>
+      </div>
+      <div class="cal-nav-center">
+        <div class="cal-nav-title" id="lst-cal-title">Lunación 1</div>
+        <div class="cal-nav-sub" id="lst-cal-sub"></div>
+      </div>
+      <div class="nav-group">
+        <button class="nbtn" id="lst-lune-next" onclick="lstNav('lune',1)" title="Lúnio siguiente">›</button>
+        <button class="nbtn" id="lst-lun-next" onclick="lstNav('lun',1)" title="Lunación siguiente">»</button>
       </div>
     </div>
-    <div class="lst-ref">
-      <div class="lst-ref-row"><span>1 Lune</span><strong>= 85,048.09 s♁</strong></div>
-      <div class="lst-ref-row"><span>1 Lunour</span><strong>= 3,543.67 s♁</strong></div>
-      <div class="lst-ref-row"><span>1 Centilunour</span><strong>= 35.44 s♁</strong></div>
-      <div class="lst-ref-row"><span>Época</span><strong>17 ene 1923 02:41 UTC</strong></div>
-    </div>
+    <div class="mini-cal"><table id="cal-lst-table"></table></div>
+    <div class="sel-info" id="lst-sel-info"></div>
     <div class="info-row">
       <span>Lunación: <strong id="lst-lunation-info">—</strong></span>
       <span>Lúnio: <strong id="lst-lune-info">—</strong></span>
@@ -542,6 +581,8 @@ const MARS_YEAR_SOLS = 686.9713 / MARS_SOL_RATIO;
 const MAX_EARTH_YEAR = 3000;
 const MAX_MARS_YEAR  = 556;
 const MAX_DAR_YEAR   = 556;
+const MAX_LST_LUNATION = 13316;
+const LUNES_PER_LUNATION = 30;
 
 const MARS_DAYS_FULL  = ['Lúnares','Mártes','Hérmoles','Zeúves','Afrónes','Króbado','Helingo'];
 const MARS_DAYS_SHORT = ['Lún','Már','Hér','Zeú','Afr','Kró','Hel'];
@@ -575,6 +616,7 @@ let syncMode = false;
 let eNavYear, eNavMonth, eSelDay = null, eNavLive = true;
 let mNavYear, mNavMonth, mSelSol = null, mNavLive = true;
 let dNavYear, dNavMonth, dSelSol = null, dNavLive = true;
+let lstNavLunation, lstNavLune, lstSelLune = null, lstNavLive = true;
 let marsMode = 'none';
 let darkMode = true;
 let selectedUtcOffset = -5;
@@ -773,6 +815,52 @@ function drawClock(id, h, m, s, p){
   ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
 }
 
+function drawLSTClock(id, lunour, centilunour, millilunour, p){
+  const cv = document.getElementById(id); if(!cv) return;
+  const ctx = cv.getContext('2d'), cx=95, cy=95, r=88;
+  ctx.clearRect(0,0,190,190);
+  const g = ctx.createRadialGradient(cx,cy,18,cx,cy,r);
+  g.addColorStop(0,p.bgC); g.addColorStop(1,p.bgE);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle=p.bezel; ctx.lineWidth=3; ctx.stroke();
+
+  for(let i=0; i<24; i++){
+    const a=(i/24)*Math.PI*2-Math.PI/2;
+    const isMaj=(i%6===0), len=isMaj?11:5, rO=r-5;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*rO, cy+Math.sin(a)*rO);
+    ctx.lineTo(cx+Math.cos(a)*(rO-len), cy+Math.sin(a)*(rO-len));
+    ctx.strokeStyle=isMaj?p.maj:p.min; ctx.lineWidth=isMaj?2.5:1; ctx.stroke();
+  }
+  for(let i=0; i<10; i++){
+    const a=(i/10)*Math.PI*2-Math.PI/2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*(r-18), cy+Math.sin(a)*(r-18));
+    ctx.lineTo(cx+Math.cos(a)*(r-24), cy+Math.sin(a)*(r-24));
+    ctx.strokeStyle=p.min; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  ctx.font='bold 9px Segoe UI,sans-serif'; ctx.fillStyle=p.num;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  [0,6,12,18].forEach(i=>{
+    const a=(i/24)*Math.PI*2-Math.PI/2;
+    ctx.fillText(i, cx+Math.cos(a)*(r-21), cy+Math.sin(a)*(r-21));
+  });
+
+  function hand(angle, len, w, col){
+    ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(angle)*len, cy+Math.sin(angle)*len);
+    ctx.strokeStyle=col; ctx.lineWidth=w; ctx.lineCap='round'; ctx.stroke(); ctx.restore();
+  }
+  hand((lunour/24)*Math.PI*2-Math.PI/2, 50, 5.5, p.hH);
+  hand((centilunour/100)*Math.PI*2-Math.PI/2, 67, 3.5, p.mH);
+  hand((millilunour/10)*Math.PI*2-Math.PI/2, 75, 1.5, p.sH);
+
+  ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fillStyle=p.ctr; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+}
+
 /* ══════════════════════════════════════════════
    BUILD EARTH CALENDAR
 ══════════════════════════════════════════════ */
@@ -864,6 +952,29 @@ function buildDarCal(nY, nM, tY, tM, tS, sel){
   document.getElementById('d-yy-next').disabled = (nY>=MAX_DAR_YEAR);
 }
 
+function buildLSTCal(nLun, tLun, tLune, sel){
+  let html = '<thead><tr>';
+  ['I','II','III','IV','V','VI'].forEach(d=>{ html += `<th>${d}</th>`; });
+  html += '</tr></thead><tbody><tr>';
+  let col = 0;
+  for(let ln=1; ln<=LUNES_PER_LUNATION; ln++){
+    if(col>0 && col%6===0) html += '</tr><tr>';
+    const isT=(nLun===tLun&&ln===tLune), isS=(sel===ln);
+    let cls = isT&&isS?'today selected':isT?'today':isS?'selected':'';
+    html += `<td class="${cls}" onclick="onLSTClick(${ln})">${ln}</td>`;
+    col++;
+  }
+  while(col%6!==0){ html += '<td class="empty"></td>'; col++; }
+  html += '</tr></tbody>';
+  document.getElementById('cal-lst-table').innerHTML = html;
+  document.getElementById('lst-cal-title').textContent = `Lunación ${nLun}`;
+  document.getElementById('lst-cal-sub').textContent = `${LUNES_PER_LUNATION} lúnios · 1 lúnio = 23.625 h♁`;
+  document.getElementById('lst-lun-prev').disabled = (nLun<=1);
+  document.getElementById('lst-lune-prev').disabled = false;
+  document.getElementById('lst-lune-next').disabled = false;
+  document.getElementById('lst-lun-next').disabled = (nLun>=MAX_LST_LUNATION);
+}
+
 /* ══════════════════════════════════════════════
    NAVIGATION
 ══════════════════════════════════════════════ */
@@ -895,6 +1006,17 @@ function darianNav(unit, dir){
   dSelSol = null; dNavLive = false; setSelInfo('darian', null);
   renderDar(new Date());
   if(syncMode) syncFromDar(dNavYear, dNavMonth, 1, false);
+}
+
+function lstNav(unit, dir){
+  if(unit==='lune'){
+    lstNavLunation += dir;
+  } else {
+    lstNavLunation += dir * 10;
+  }
+  lstNavLunation = Math.max(1, Math.min(MAX_LST_LUNATION, lstNavLunation));
+  lstSelLune = null; lstNavLive = false; setSelInfo('lst', null);
+  renderLST(new Date());
 }
 
 /* ══════════════════════════════════════════════
@@ -976,11 +1098,18 @@ function onDarClick(sol){
   }
 }
 
+function onLSTClick(lune){
+  lstSelLune = (lstSelLune===lune) ? null : lune; lstNavLive = false;
+  const now = new Date(); renderLST(now);
+  const txt = lstSelLune ? `Lunación ${lstNavLunation}, Lúnio ${lstSelLune}` : null;
+  setSelInfo('lst', txt);
+}
+
 /* ══════════════════════════════════════════════
    SEL INFO
 ══════════════════════════════════════════════ */
 function setSelInfo(panel, txt){
-  const ids = { earth:'earth-sel-info', mars:'mars-sel-info', darian:'darian-sel-info' };
+  const ids = { earth:'earth-sel-info', mars:'mars-sel-info', darian:'darian-sel-info', lst:'lst-sel-info' };
   const el = document.getElementById(ids[panel]);
   if(txt){ el.textContent = txt; el.classList.add('visible'); }
   else   { el.textContent = '';  el.classList.remove('visible'); }
@@ -1005,6 +1134,12 @@ function goDarianNow(){
   const now=new Date(), dar=darFromTotalSols(solsFromEpoch(now));
   dNavYear=dar.year; dNavMonth=dar.month;
   setSelInfo('darian',null); renderDar(now);
+}
+function goLSTNow(){
+  lstNavLive=true; lstSelLune=null;
+  const now=new Date(), lst=getLST(now);
+  lstNavLunation=lst.lunation; lstNavLune=lst.lune;
+  setSelInfo('lst',null); renderLST(now);
 }
 
 /* ══════════════════════════════════════════════
@@ -1113,18 +1248,27 @@ function getLST(now){
 
 function renderLST(now){
   const lst = getLST(now);
+  const isLight = document.body.classList.contains('light');
+  const mlSec = MILLILUNOUR_SEC.toFixed(5);
+  const slowerPct = ((MILLILUNOUR_SEC - 1) * 100).toFixed(2);
+
   document.getElementById('lst-lunation').textContent = lst.lunation;
-  document.getElementById('lst-lunation-info').textContent = lst.lunation;
-  document.getElementById('lst-lune').textContent = lst.lune;
-  document.getElementById('lst-lune-info').textContent = lst.lune;
-  document.getElementById('lst-time').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
+  document.getElementById('lst-lune-live').textContent = lst.lune;
   document.getElementById('lst-lunour').textContent = pad(lst.lunour);
   document.getElementById('lst-centilunour').textContent = pad(lst.centilunour);
   document.getElementById('lst-millilunour').textContent = lst.millilunour;
-  const isLight = document.body.classList.contains('light');
-  const frac = (lst.lunour * LUNOUR_SEC + lst.centilunour * CENTILUNOUR_SEC + lst.millilunour * MILLILUNOUR_SEC) / LUNE_SEC;
-  drawClock('canvas-lst', lst.lunour, lst.centilunour, lst.millilunour, isLight ? LST_LIGHT : LST_DARK);
   document.getElementById('digital-lst').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
+  document.getElementById('lst-time').textContent = pad(lst.lunour)+':'+pad(lst.centilunour)+'.'+lst.millilunour;
+  document.getElementById('lst-lunation-info').textContent = lst.lunation;
+  document.getElementById('lst-lune-info').textContent = lst.lune;
+  document.getElementById('lst-ml-val').textContent = mlSec;
+  document.getElementById('lst-pct').textContent = `+${slowerPct}%`;
+
+  drawLSTClock('canvas-lst', lst.lunour, lst.centilunour, lst.millilunour, isLight ? LST_LIGHT : LST_DARK);
+  document.getElementById('lst-now-btn').classList.toggle('away', !lstNavLive);
+
+  if(lstNavLive){ lstNavLunation = lst.lunation; lstNavLune = lst.lune; }
+  buildLSTCal(lstNavLunation, lst.lunation, lst.lune, lstSelLune);
 }
 
 /* ══════════════════════════════════════════════
@@ -1329,6 +1473,9 @@ document.addEventListener('click', function(e){
   mNavYear = sil.year; mNavMonth = sil.month;
   const dar = darFromTotalSols(solsFromEpoch(now));
   dNavYear = dar.year; dNavMonth = dar.month;
+  const lstNow = getLST(now);
+  lstNavLunation = lstNow.lunation;
+  lstNavLune = lstNow.lune;
   setMarsMode('none');
   updateGridLayout();
   tick();
